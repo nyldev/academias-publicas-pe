@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   View,
   Text,
@@ -65,11 +66,16 @@ export default function DetailsScreen({ route, navigation }) {
   const nomeExibido = nome.replace(/^Academia Recife\s*[-–]\s*/i, '');
 
   useEffect(() => {
-    // Esconde o header padrão — usamos botão flutuante sobre o hero
     navigation.setOptions({ headerShown: false });
-    carregarAvaliacoes();
     getFavoritos().then((favs) => setFavorito(favs.includes(academia.id)));
   }, []);
+
+  // Recarrega avaliações sempre que a tela ganhar foco (ex: voltando de Avaliar)
+  useFocusEffect(
+    useCallback(() => {
+      carregarAvaliacoes();
+    }, [])
+  );
 
   async function carregarAvaliacoes() {
     try {
@@ -224,7 +230,7 @@ export default function DetailsScreen({ route, navigation }) {
         {/* Avaliar */}
         <TouchableOpacity
           style={styles.btnAvaliar}
-          onPress={() => navigation.navigate('Avaliar', { academia, onAvaliacaoAdicionada: carregarAvaliacoes })}
+          onPress={() => navigation.navigate('Avaliar', { academia })}
           activeOpacity={0.85}
         >
           <Ionicons name="star" size={16} color="#1A1A1A" />

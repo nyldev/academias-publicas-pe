@@ -46,7 +46,7 @@ function MapStack() {
   return (
     <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
-        name="Mapa"
+        name="MapaView"
         component={MapScreen}
         options={{ title: 'Recife + · Mapa' }}
       />
