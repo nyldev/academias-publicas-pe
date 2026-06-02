@@ -5,9 +5,11 @@
     "version": "1.0.0",
     "sdkVersion": "54.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/recife-logo.png",
     "userInterfaceStyle": "light",
     "splash": {
+      "image": "./assets/recife-logo.png",
+      "resizeMode": "contain",
       "backgroundColor": "#0064B0"
     },
     "ios": {
