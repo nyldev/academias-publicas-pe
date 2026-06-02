@@ -10,19 +10,22 @@ import {
   Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { buscarAvaliacoes } from '../services/academias';
+import { colors, spacing, radius, shadow } from '../theme';
 
 const SCREEN_W = Dimensions.get('window').width;
+const HERO_H = 260;
 
-function Estrelas({ valor, tamanho = 20 }) {
+function Estrelas({ valor, tamanho = 16, cor = colors.star }) {
   return (
-    <View style={{ flexDirection: 'row' }}>
+    <View style={{ flexDirection: 'row', gap: 2 }}>
       {[1, 2, 3, 4, 5].map((i) => (
         <Ionicons
           key={i}
           name={i <= valor ? 'star' : 'star-outline'}
           size={tamanho}
-          color="#FFC107"
+          color={cor}
         />
       ))}
     </View>
@@ -32,18 +35,22 @@ function Estrelas({ valor, tamanho = 20 }) {
 export default function DetailsScreen({ route, navigation }) {
   const { academia } = route.params;
   const [avaliacoes, setAvaliacoes] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingAv, setLoadingAv] = useState(true);
+  const [fotoIdx, setFotoIdx] = useState(0);
 
-  const nome = academia.get('nome');
-  const bairro = academia.get('bairro');
+  const nome = academia.get('nome') || '';
+  const bairro = academia.get('bairro') || '';
   const endereco = academia.get('endereco') || '';
   const descricao = academia.get('descricao') || '';
   const equipamentos = academia.get('equipamentos') || [];
   const mediaAvaliacao = academia.get('mediaAvaliacao') || 0;
   const fotos = academia.get('fotos') || [];
 
+  // Extrai a parte mais curta do nome (remove "Academia Recife - " do início)
+  const nomeExibido = nome.replace(/^Academia Recife\s*[-–]\s*/i, '');
+
   useEffect(() => {
-    navigation.setOptions({ title: nome });
+    navigation.setOptions({ title: '' }); // usa o hero como título visual
     carregarAvaliacoes();
   }, []);
 
@@ -51,68 +58,117 @@ export default function DetailsScreen({ route, navigation }) {
     try {
       const resultado = await buscarAvaliacoes(academia);
       setAvaliacoes(resultado);
-    } catch (error) {
-      console.error('Erro ao carregar avaliações:', error);
+    } catch (e) {
+      console.error('Erro ao carregar avaliações:', e);
     } finally {
-      setLoading(false);
+      setLoadingAv(false);
     }
   }
 
+  const heroUri = fotos[fotoIdx] || null;
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Galeria de fotos do local */}
-      {fotos.length > 0 && (
-        <View style={styles.galeria}>
-          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
-            {fotos.map((url, i) => (
-              <Image key={i} source={{ uri: url }} style={styles.foto} resizeMode="cover" />
-            ))}
-          </ScrollView>
-          {fotos.length > 1 && (
-            <View style={styles.galeriaSelo}>
-              <Ionicons name="images" size={12} color="#fff" />
-              <Text style={styles.galeriaSeloText}>{fotos.length} fotos</Text>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* ── HERO ── */}
+      <View style={styles.hero}>
+        {heroUri ? (
+          <Image source={{ uri: heroUri }} style={styles.heroImg} resizeMode="cover" />
+        ) : (
+          <View style={styles.heroPlaceholder}>
+            <Ionicons name="fitness" size={64} color={colors.accent} />
+          </View>
+        )}
+
+        {/* Gradiente escuro na base — sobreposição do nome */}
+        <LinearGradient
+          colors={['transparent', 'rgba(0,0,0,0.72)']}
+          style={styles.heroGradient}
+        >
+          {/* Selo "Academia Recife" */}
+          <View style={styles.heroSelo}>
+            <Ionicons name="shield-checkmark" size={11} color={colors.accent} />
+            <Text style={styles.heroSeloText}>Academia Recife · Prefeitura do Recife</Text>
+          </View>
+
+          {/* Nome do polo */}
+          <Text style={styles.heroNome}>{nomeExibido}</Text>
+
+          {/* Localização */}
+          <View style={styles.heroLocal}>
+            <Ionicons name="location" size={13} color="rgba(255,255,255,0.85)" />
+            <Text style={styles.heroLocalText} numberOfLines={1}>
+              {bairro}{endereco ? ` · ${endereco}` : ''}
+            </Text>
+          </View>
+
+          {/* Média de avaliação */}
+          {mediaAvaliacao > 0 && (
+            <View style={styles.heroMedia}>
+              <Estrelas valor={Math.round(mediaAvaliacao)} tamanho={13} cor={colors.accent} />
+              <Text style={styles.heroMediaText}>{mediaAvaliacao.toFixed(1)}</Text>
             </View>
           )}
-        </View>
-      )}
+        </LinearGradient>
 
-      {/* Cabeçalho */}
-      <View style={styles.header}>
-        <View style={styles.headerIcon}>
-          <Ionicons name="fitness" size={40} color="#0064B0" />
-        </View>
-        <Text style={styles.nome}>{nome}</Text>
-        <View style={styles.localRow}>
-          <Ionicons name="location" size={16} color="#0064B0" />
-          <Text style={styles.localText}>
-            {bairro}{endereco ? ` — ${endereco}` : ''}
-          </Text>
-        </View>
-        {mediaAvaliacao > 0 && (
-          <View style={styles.mediaRow}>
-            <Estrelas valor={Math.round(mediaAvaliacao)} tamanho={18} />
-            <Text style={styles.mediaText}>{mediaAvaliacao.toFixed(1)} / 5</Text>
+        {/* Seletor de fotos (bolinhas) */}
+        {fotos.length > 1 && (
+          <View style={styles.fotoDots}>
+            {fotos.map((_, i) => (
+              <TouchableOpacity key={i} onPress={() => setFotoIdx(i)}>
+                <View style={[styles.dot, i === fotoIdx && styles.dotAtivo]} />
+              </TouchableOpacity>
+            ))}
           </View>
         )}
       </View>
 
-      {/* Descrição */}
+      {/* ── BOTÃO AVALIAR (em destaque logo abaixo do hero) ── */}
+      <View style={styles.acoes}>
+        <TouchableOpacity
+          style={styles.btnAvaliar}
+          onPress={() =>
+            navigation.navigate('Avaliar', {
+              academia,
+              onAvaliacaoAdicionada: carregarAvaliacoes,
+            })
+          }
+          activeOpacity={0.85}
+        >
+          <Ionicons name="star" size={16} color="#1A1A1A" />
+          <Text style={styles.btnAvaliarText}>Avaliar academia</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ── SOBRE ── */}
       {descricao.length > 0 && (
         <View style={styles.secao}>
-          <Text style={styles.secaoTitulo}>Sobre</Text>
+          <View style={styles.secaoTituloRow}>
+            <View style={styles.secaoIcone}>
+              <Ionicons name="information-circle" size={18} color={colors.primary} />
+            </View>
+            <Text style={styles.secaoTitulo}>Sobre</Text>
+          </View>
           <Text style={styles.descricao}>{descricao}</Text>
         </View>
       )}
 
-      {/* Equipamentos */}
+      {/* ── EQUIPAMENTOS ── */}
       {equipamentos.length > 0 && (
         <View style={styles.secao}>
-          <Text style={styles.secaoTitulo}>Equipamentos disponíveis</Text>
+          <View style={styles.secaoTituloRow}>
+            <View style={styles.secaoIcone}>
+              <Ionicons name="barbell" size={18} color={colors.primary} />
+            </View>
+            <Text style={styles.secaoTitulo}>Equipamentos</Text>
+          </View>
           <View style={styles.equipamentosGrid}>
             {equipamentos.map((eq, idx) => (
               <View key={idx} style={styles.equipamentoBadge}>
-                <Ionicons name="barbell-outline" size={14} color="#0064B0" />
+                <Ionicons name="checkmark-circle" size={13} color={colors.primary} />
                 <Text style={styles.equipamentoText}>{eq}</Text>
               </View>
             ))}
@@ -120,30 +176,29 @@ export default function DetailsScreen({ route, navigation }) {
         </View>
       )}
 
-      {/* Botão avaliar */}
-      <TouchableOpacity
-        style={styles.btnAvaliar}
-        onPress={() => navigation.navigate('Avaliar', { academia, onAvaliacaoAdicionada: carregarAvaliacoes })}
-        activeOpacity={0.85}
-      >
-        <Ionicons name="star-outline" size={18} color="#fff" />
-        <Text style={styles.btnAvaliarText}>Avaliar esta academia</Text>
-      </TouchableOpacity>
-
-      {/* Avaliações */}
+      {/* ── AVALIAÇÕES ── */}
       <View style={styles.secao}>
-        <Text style={styles.secaoTitulo}>
-          Avaliações {avaliacoes.length > 0 ? `(${avaliacoes.length})` : ''}
-        </Text>
-        {loading ? (
-          <ActivityIndicator color="#0064B0" style={{ marginTop: 12 }} />
+        <View style={styles.secaoTituloRow}>
+          <View style={styles.secaoIcone}>
+            <Ionicons name="star" size={18} color={colors.accent} />
+          </View>
+          <Text style={styles.secaoTitulo}>
+            Avaliações{avaliacoes.length > 0 ? ` (${avaliacoes.length})` : ''}
+          </Text>
+        </View>
+
+        {loadingAv ? (
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 12 }} />
         ) : avaliacoes.length === 0 ? (
-          <Text style={styles.semAvaliacao}>Seja o primeiro a avaliar!</Text>
+          <View style={styles.semAvaliacaoBox}>
+            <Ionicons name="star-outline" size={32} color="#D0D8DF" />
+            <Text style={styles.semAvaliacaoText}>Seja o primeiro a avaliar!</Text>
+          </View>
         ) : (
           avaliacoes.map((av) => (
             <View key={av.id} style={styles.avaliacaoCard}>
               <View style={styles.avaliacaoHeader}>
-                <Estrelas valor={av.get('nota')} tamanho={15} />
+                <Estrelas valor={av.get('nota')} tamanho={14} />
                 <Text style={styles.avaliacaoData}>
                   {av.createdAt?.toLocaleDateString('pt-BR')}
                 </Text>
@@ -163,89 +218,147 @@ export default function DetailsScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F5F5F5' },
-  content: { paddingBottom: 32 },
-  galeria: { position: 'relative', marginBottom: 12 },
-  foto: { width: SCREEN_W, height: 230, backgroundColor: '#E4F0FA' },
-  galeriaSelo: {
-    position: 'absolute',
-    bottom: 10,
-    right: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    borderRadius: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  galeriaSeloText: { color: '#fff', fontSize: 11, fontWeight: '600' },
-  header: {
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    padding: 24,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    marginBottom: 12,
-  },
-  headerIcon: {
-    width: 72,
-    height: 72,
-    borderRadius: 20,
-    backgroundColor: '#E4F0FA',
+  container: { flex: 1, backgroundColor: colors.bg },
+  content: { paddingBottom: 40 },
+
+  // ── Hero ──
+  hero: { width: SCREEN_W, height: HERO_H, backgroundColor: colors.primarySoft },
+  heroImg: { width: SCREEN_W, height: HERO_H, position: 'absolute' },
+  heroPlaceholder: {
+    width: SCREEN_W,
+    height: HERO_H,
+    backgroundColor: colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
   },
-  nome: {
-    fontSize: 22,
-    fontWeight: '700',
-    color: '#1B1B1B',
-    textAlign: 'center',
-    marginBottom: 6,
+  heroGradient: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.lg,
+    paddingTop: 60,
   },
-  localRow: {
+  heroSelo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 8,
+    marginBottom: 6,
   },
-  localText: { color: '#555', fontSize: 14 },
-  mediaRow: {
+  heroSeloText: {
+    color: colors.accent,
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  heroNome: {
+    color: '#fff',
+    fontSize: 26,
+    fontWeight: '800',
+    lineHeight: 30,
+    marginBottom: 6,
+  },
+  heroLocal: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: 6,
+  },
+  heroLocalText: {
+    color: 'rgba(255,255,255,0.85)',
+    fontSize: 13,
+    flex: 1,
+  },
+  heroMedia: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  heroMediaText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  fotoDots: {
+    position: 'absolute',
+    bottom: spacing.sm,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    gap: 5,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(255,255,255,0.45)',
+  },
+  dotAtivo: {
+    backgroundColor: colors.accent,
+    width: 18,
+    borderRadius: 3,
+  },
+
+  // ── Ações ──
+  acoes: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.sm,
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  btnAvaliar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.accent,
+    borderRadius: radius.pill,
+    paddingVertical: 13,
+    gap: 7,
+    ...shadow.card,
+  },
+  btnAvaliarText: {
+    color: '#1A1A1A',
+    fontSize: 15,
+    fontWeight: '700',
+  },
+
+  // ── Seções ──
+  secao: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginHorizontal: spacing.md,
+    marginBottom: spacing.md,
+    ...shadow.soft,
+  },
+  secaoTituloRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 4,
-  },
-  mediaText: {
-    color: '#888',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  secao: {
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
-    marginHorizontal: 12,
     marginBottom: 12,
-    elevation: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-    shadowOffset: { width: 0, height: 1 },
+  },
+  secaoIcone: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: colors.primarySoft,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   secaoTitulo: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#222',
-    marginBottom: 10,
+    color: colors.textPrimary,
   },
-  descricao: { color: '#555', fontSize: 14, lineHeight: 22 },
+  descricao: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 22,
+  },
+
   equipamentosGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -254,40 +367,54 @@ const styles = StyleSheet.create({
   equipamentoBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E4F0FA',
-    borderRadius: 20,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.pill,
     paddingHorizontal: 10,
     paddingVertical: 5,
     gap: 5,
   },
-  equipamentoText: { color: '#0064B0', fontSize: 13, fontWeight: '500' },
-  btnAvaliar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#0064B0',
-    marginHorizontal: 12,
-    marginBottom: 12,
-    borderRadius: 12,
-    paddingVertical: 14,
-    gap: 8,
-    elevation: 3,
+  equipamentoText: {
+    color: colors.primary,
+    fontSize: 13,
+    fontWeight: '500',
   },
-  btnAvaliarText: { color: '#fff', fontSize: 16, fontWeight: '600' },
-  semAvaliacao: { color: '#aaa', fontSize: 14, textAlign: 'center', paddingVertical: 12 },
+
+  // ── Avaliações ──
+  semAvaliacaoBox: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    gap: 8,
+  },
+  semAvaliacaoText: {
+    color: colors.textMuted,
+    fontSize: 14,
+  },
   avaliacaoCard: {
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    paddingTop: 10,
-    marginTop: 10,
+    borderTopColor: colors.border,
+    paddingTop: 12,
+    marginTop: 12,
   },
   avaliacaoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 5,
   },
-  avaliacaoData: { color: '#aaa', fontSize: 12 },
-  avaliacaoComentario: { color: '#444', fontSize: 14, lineHeight: 20, marginTop: 4 },
-  avaliacaoAutor: { color: '#888', fontSize: 12, marginTop: 4, fontStyle: 'italic' },
+  avaliacaoData: {
+    color: colors.textMuted,
+    fontSize: 12,
+  },
+  avaliacaoComentario: {
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+    marginTop: 4,
+  },
+  avaliacaoAutor: {
+    color: colors.textMuted,
+    fontSize: 12,
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
 });
