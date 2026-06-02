@@ -8,8 +8,8 @@
     "icon": "./assets/recife-logo.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/recife-logo.png",
-      "resizeMode": "contain",
+      "image": "./assets/menuentrada.jpg",
+      "resizeMode": "cover",
       "backgroundColor": "#0064B0"
     },
     "ios": {
