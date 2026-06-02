@@ -12,10 +12,13 @@ import {
   Linking,
   Platform,
   Alert,
+  Share,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { buscarAvaliacoes } from '../services/academias';
+import { getFavoritos, toggleFavorito } from '../services/favoritos';
+import { HORARIOS, getStatusAgora } from '../utils/horarios';
 import { colors, spacing, radius, shadow } from '../theme';
 
 const SCREEN_W = Dimensions.get('window').width;
@@ -41,6 +44,8 @@ export default function DetailsScreen({ route, navigation }) {
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [loadingAv, setLoadingAv] = useState(true);
   const [fotoIdx, setFotoIdx] = useState(0);
+  const [favorito, setFavorito] = useState(false);
+  const statusHorario = getStatusAgora();
   const flatListRef = useRef(null);
 
   const onViewableItemsChanged = useCallback(({ viewableItems }) => {
@@ -60,8 +65,9 @@ export default function DetailsScreen({ route, navigation }) {
   const nomeExibido = nome.replace(/^Academia Recife\s*[-–]\s*/i, '');
 
   useEffect(() => {
-    navigation.setOptions({ title: '' }); // usa o hero como título visual
+    navigation.setOptions({ title: '' });
     carregarAvaliacoes();
+    getFavoritos().then((favs) => setFavorito(favs.includes(academia.id)));
   }, []);
 
   async function carregarAvaliacoes() {
@@ -79,6 +85,26 @@ export default function DetailsScreen({ route, navigation }) {
 
   function scrollParaFoto(i) {
     flatListRef.current?.scrollToIndex({ index: i, animated: true });
+  }
+
+  async function handleFavorito() {
+    const novos = await toggleFavorito(academia.id);
+    setFavorito(novos.includes(academia.id));
+  }
+
+  async function handleCompartilhar() {
+    const { latitude, longitude } = localizacao || {};
+    const mapsLink = latitude
+      ? `https://www.google.com/maps?q=${latitude},${longitude}`
+      : '';
+    try {
+      await Share.share({
+        message: `🏋️ ${nomeExibido}\n📍 ${bairro}${endereco ? ` — ${endereco}` : ''}\n\nAcademia ao ar livre gratuita da Prefeitura do Recife.\n${mapsLink}`,
+        title: nomeExibido,
+      });
+    } catch (e) {
+      console.error('Erro ao compartilhar:', e);
+    }
   }
 
   function abrirRota() {
@@ -177,31 +203,32 @@ export default function DetailsScreen({ route, navigation }) {
         )}
       </View>
 
-      {/* ── AÇÕES: Como chegar + Avaliar ── */}
+      {/* ── AÇÕES ── */}
       <View style={styles.acoes}>
-        {/* Como chegar — botão primário (azul Recife) */}
-        <TouchableOpacity
-          style={styles.btnRota}
-          onPress={abrirRota}
-          activeOpacity={0.85}
-        >
+        {/* Como chegar */}
+        <TouchableOpacity style={styles.btnRota} onPress={abrirRota} activeOpacity={0.85}>
           <Ionicons name="navigate" size={16} color="#fff" />
           <Text style={styles.btnRotaText}>Como chegar</Text>
         </TouchableOpacity>
 
-        {/* Avaliar — botão secundário (amarelo Recife) */}
+        {/* Avaliar */}
         <TouchableOpacity
           style={styles.btnAvaliar}
-          onPress={() =>
-            navigation.navigate('Avaliar', {
-              academia,
-              onAvaliacaoAdicionada: carregarAvaliacoes,
-            })
-          }
+          onPress={() => navigation.navigate('Avaliar', { academia, onAvaliacaoAdicionada: carregarAvaliacoes })}
           activeOpacity={0.85}
         >
           <Ionicons name="star" size={16} color="#1A1A1A" />
           <Text style={styles.btnAvaliarText}>Avaliar</Text>
+        </TouchableOpacity>
+
+        {/* Favoritar */}
+        <TouchableOpacity style={styles.btnIcone} onPress={handleFavorito} activeOpacity={0.8}>
+          <Ionicons name={favorito ? 'heart' : 'heart-outline'} size={22} color={favorito ? '#EF4444' : colors.textSecondary} />
+        </TouchableOpacity>
+
+        {/* Compartilhar */}
+        <TouchableOpacity style={styles.btnIcone} onPress={handleCompartilhar} activeOpacity={0.8}>
+          <Ionicons name="share-social-outline" size={22} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
@@ -237,6 +264,29 @@ export default function DetailsScreen({ route, navigation }) {
           </View>
         </View>
       )}
+
+      {/* ── HORÁRIOS ── */}
+      <View style={styles.secao}>
+        <View style={styles.secaoTituloRow}>
+          <View style={styles.secaoIcone}>
+            <Ionicons name="time" size={18} color={colors.primary} />
+          </View>
+          <Text style={styles.secaoTitulo}>Horários</Text>
+          <View style={[styles.statusPill, statusHorario.aberto ? styles.statusAberto : styles.statusFechado]}>
+            <View style={[styles.statusDot, { backgroundColor: statusHorario.aberto ? '#22C55E' : '#EF4444' }]} />
+            <Text style={[styles.statusPillText, { color: statusHorario.aberto ? '#15803D' : '#B91C1C' }]}>
+              {statusHorario.aberto ? 'Aberto agora' : 'Fechado'}
+            </Text>
+          </View>
+        </View>
+        <Text style={styles.statusLabelDetalhe}>{statusHorario.label}</Text>
+        {HORARIOS.map((h) => (
+          <View key={h.dia} style={styles.horarioRow}>
+            <Text style={styles.horarioDia}>{h.dia}</Text>
+            <Text style={styles.horarioPeriodo}>{h.periodos.join('  |  ')}</Text>
+          </View>
+        ))}
+      </View>
 
       {/* ── AVALIAÇÕES ── */}
       <View style={styles.secao}>
@@ -404,6 +454,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '700',
   },
+  btnIcone: {
+    width: 46,
+    height: 46,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
+    justifyContent: 'center',
+    alignItems: 'center',
+    ...shadow.soft,
+  },
   btnAvaliar: {
     flex: 1,
     flexDirection: 'row',
@@ -473,6 +532,42 @@ const styles = StyleSheet.create({
     color: colors.primary,
     fontSize: 13,
     fontWeight: '500',
+  },
+
+  // ── Horários ──
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    marginLeft: 'auto',
+  },
+  statusAberto: { backgroundColor: '#F0FDF4' },
+  statusFechado: { backgroundColor: '#FEF2F2' },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusPillText: { fontSize: 11, fontWeight: '700' },
+  statusLabelDetalhe: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 10,
+  },
+  horarioRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 7,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  horarioDia: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textPrimary,
+  },
+  horarioPeriodo: {
+    fontSize: 13,
+    color: colors.textSecondary,
   },
 
   // ── Avaliações ──

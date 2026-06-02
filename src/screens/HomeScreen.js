@@ -12,18 +12,24 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { listarAcademias } from '../services/academias';
+import { getFavoritos, toggleFavorito } from '../services/favoritos';
 import useUserLocation from '../hooks/useUserLocation';
 import { calcularDistanciaKm, formatarDistancia } from '../utils/geo';
+import { getStatusAgora } from '../utils/horarios';
 import { colors, spacing, radius, shadow } from '../theme';
 
 const ORDENACOES = [
-  { id: 'nome', label: 'Nome', icon: 'text-outline' },
+  { id: 'nome',      label: 'Nome',        icon: 'text-outline' },
   { id: 'distancia', label: 'Perto de mim', icon: 'navigate-outline' },
-  { id: 'avaliacao', label: 'Melhores', icon: 'star-outline' },
+  { id: 'avaliacao', label: 'Melhores',    icon: 'star-outline' },
+  { id: 'favoritos', label: 'Favoritos',   icon: 'heart-outline' },
 ];
+
+const statusHorario = getStatusAgora();
 
 export default function HomeScreen({ navigation }) {
   const [academias, setAcademias] = useState([]);
+  const [favoritos, setFavoritos] = useState([]);
   const [busca, setBusca] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -31,6 +37,14 @@ export default function HomeScreen({ navigation }) {
   const [ordenacao, setOrdenacao] = useState('nome');
 
   const { location, status: locStatus } = useUserLocation();
+
+  useEffect(() => { getFavoritos().then(setFavoritos); }, []);
+
+  async function handleToggleFavorito(e, id) {
+    e.stopPropagation();
+    const novos = await toggleFavorito(id);
+    setFavoritos(novos);
+  }
 
   const carregar = useCallback(async () => {
     try {
@@ -69,27 +83,27 @@ export default function HomeScreen({ navigation }) {
       let distanciaKm = null;
       if (location && loc) {
         distanciaKm = calcularDistanciaKm(
-          location.latitude,
-          location.longitude,
-          loc.latitude,
-          loc.longitude
+          location.latitude, location.longitude,
+          loc.latitude, loc.longitude
         );
       }
       return { academia, distanciaKm };
     });
 
     if (termo) {
-      itens = itens.filter(
-        ({ academia }) =>
-          academia.get('nome').toLowerCase().includes(termo) ||
-          (academia.get('bairro') || '').toLowerCase().includes(termo)
+      itens = itens.filter(({ academia }) =>
+        academia.get('nome').toLowerCase().includes(termo) ||
+        (academia.get('bairro') || '').toLowerCase().includes(termo)
       );
     }
 
+    if (ordenacao === 'favoritos') {
+      itens = itens.filter(({ academia }) => favoritos.includes(academia.id));
+    }
+
     itens.sort((a, b) => {
-      if (ordenacao === 'avaliacao') {
+      if (ordenacao === 'avaliacao')
         return (b.academia.get('mediaAvaliacao') || 0) - (a.academia.get('mediaAvaliacao') || 0);
-      }
       if (ordenacao === 'distancia') {
         if (a.distanciaKm == null) return 1;
         if (b.distanciaKm == null) return -1;
@@ -99,13 +113,14 @@ export default function HomeScreen({ navigation }) {
     });
 
     return itens;
-  }, [academias, busca, ordenacao, location]);
+  }, [academias, busca, ordenacao, location, favoritos]);
 
   function renderItem({ item }) {
     const { academia, distanciaKm } = item;
-    const equipamentos = academia.get('equipamentos') || [];
     const avaliacao = academia.get('mediaAvaliacao') || 0;
     const distanciaTexto = formatarDistancia(distanciaKm);
+    const ehFavorito = favoritos.includes(academia.id);
+    const nomeExibido = (academia.get('nome') || '').replace(/^Academia Recife\s*[-–]\s*/i, '');
 
     return (
       <TouchableOpacity
@@ -118,33 +133,45 @@ export default function HomeScreen({ navigation }) {
             <Ionicons name="fitness" size={28} color="#FFC20E" />
           </View>
           <View style={styles.cardInfo}>
-            <Text style={styles.cardNome}>{academia.get('nome')}</Text>
+            <Text style={styles.cardNome}>{nomeExibido}</Text>
             <View style={styles.localRow}>
-              <Ionicons name="location-outline" size={14} color="#666" />
+              <Ionicons name="location-outline" size={14} color={colors.textMuted} />
               <Text style={styles.cardBairro}>{academia.get('bairro')}</Text>
               {distanciaTexto && (
                 <View style={styles.distanciaBadge}>
-                  <Ionicons name="navigate" size={11} color="#0064B0" />
+                  <Ionicons name="navigate" size={11} color={colors.primary} />
                   <Text style={styles.distanciaText}>{distanciaTexto}</Text>
                 </View>
               )}
             </View>
-          </View>
-          {avaliacao > 0 && (
-            <View style={styles.avaliacaoContainer}>
-              <Ionicons name="star" size={14} color="#FFC107" />
-              <Text style={styles.avaliacaoText}>{avaliacao.toFixed(1)}</Text>
+            {/* Badge Aberto / Fechado */}
+            <View style={[styles.statusBadge, statusHorario.aberto ? styles.statusAberto : styles.statusFechado]}>
+              <View style={[styles.statusDot, { backgroundColor: statusHorario.aberto ? '#22C55E' : '#EF4444' }]} />
+              <Text style={[styles.statusText, { color: statusHorario.aberto ? '#15803D' : '#B91C1C' }]}>
+                {statusHorario.label}
+              </Text>
             </View>
-          )}
-        </View>
-        {equipamentos.length > 0 && (
-          <View style={styles.equipamentosRow}>
-            <Ionicons name="barbell-outline" size={13} color="#888" />
-            <Text style={styles.equipamentosText} numberOfLines={1}>
-              {equipamentos.join(' · ')}
-            </Text>
           </View>
-        )}
+          <View style={styles.cardRight}>
+            {avaliacao > 0 && (
+              <View style={styles.avaliacaoContainer}>
+                <Ionicons name="star" size={13} color={colors.star} />
+                <Text style={styles.avaliacaoText}>{avaliacao.toFixed(1)}</Text>
+              </View>
+            )}
+            <TouchableOpacity
+              onPress={(e) => handleToggleFavorito(e, academia.id)}
+              hitSlop={8}
+              style={styles.favBtn}
+            >
+              <Ionicons
+                name={ehFavorito ? 'heart' : 'heart-outline'}
+                size={22}
+                color={ehFavorito ? '#EF4444' : colors.textMuted}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
       </TouchableOpacity>
     );
   }
@@ -463,6 +490,11 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.primary,
   },
+  cardRight: {
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    gap: 6,
+  },
   avaliacaoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -477,20 +509,23 @@ const styles = StyleSheet.create({
     color: colors.starText,
     marginLeft: 3,
   },
-  equipamentosRow: {
+  favBtn: {
+    padding: 2,
+  },
+  statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    gap: 5,
+    marginTop: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: radius.pill,
+    alignSelf: 'flex-start',
   },
-  equipamentosText: {
-    fontSize: 12,
-    color: colors.textMuted,
-    marginLeft: 5,
-    flex: 1,
-  },
+  statusAberto: { backgroundColor: '#F0FDF4' },
+  statusFechado: { backgroundColor: '#FEF2F2' },
+  statusDot: { width: 6, height: 6, borderRadius: 3 },
+  statusText: { fontSize: 11, fontWeight: '600' },
   emptyText: {
     color: colors.textMuted,
     fontSize: 15,
