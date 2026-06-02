@@ -19,7 +19,7 @@ import { getStatusAgora } from '../utils/horarios';
 import { colors, spacing, radius, shadow } from '../theme';
 
 const ORDENACOES = [
-  { id: 'nome',      label: 'Nome',        icon: 'text-outline' },
+  { id: 'nome',      label: 'Nome',        icon: 'list-outline' },
   { id: 'distancia', label: 'Perto de mim', icon: 'navigate-outline' },
   { id: 'avaliacao', label: 'Melhores',    icon: 'star-outline' },
   { id: 'favoritos', label: 'Favoritos',   icon: 'heart-outline' },
