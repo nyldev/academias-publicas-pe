@@ -120,7 +120,11 @@ export default function HomeScreen({ navigation }) {
     const avaliacao = academia.get('mediaAvaliacao') || 0;
     const distanciaTexto = formatarDistancia(distanciaKm);
     const ehFavorito = favoritos.includes(academia.id);
-    const nomeExibido = (academia.get('nome') || '').replace(/^Academia Recife\s*[-–]\s*/i, '');
+    const tipo = academia.get('tipo') || 'academia-recife';
+    const ehADC = tipo === 'academia-da-cidade';
+    const nomeExibido = (academia.get('nome') || '')
+      .replace(/^Academia Recife\s*[-–]\s*/i, '')
+      .replace(/^Academia da Cidade\s+/i, '');
 
     return (
       <TouchableOpacity
@@ -129,10 +133,16 @@ export default function HomeScreen({ navigation }) {
         activeOpacity={0.8}
       >
         <View style={styles.cardHeader}>
-          <View style={styles.iconContainer}>
-            <Ionicons name="fitness" size={28} color="#FFC20E" />
+          <View style={[styles.iconContainer, ehADC && styles.iconContainerADC]}>
+            <Ionicons name={ehADC ? 'people' : 'fitness'} size={26} color={ehADC ? colors.primary : '#FFC20E'} />
           </View>
           <View style={styles.cardInfo}>
+            {/* Badge do programa */}
+            <View style={[styles.tipoBadge, ehADC ? styles.tipoBadgeADC : styles.tipoBadgeAR]}>
+              <Text style={[styles.tipoBadgeText, ehADC ? styles.tipoBadgeTextADC : styles.tipoBadgeTextAR]}>
+                {ehADC ? 'Academia da Cidade' : 'Academia Recife'}
+              </Text>
+            </View>
             <Text style={styles.cardNome}>{nomeExibido}</Text>
             <View style={styles.localRow}>
               <Ionicons name="location-outline" size={14} color={colors.textMuted} />
@@ -258,7 +268,7 @@ export default function HomeScreen({ navigation }) {
       </View>
 
       <Text style={styles.contador}>
-        {lista.length} academia{lista.length !== 1 ? 's' : ''} encontrada{lista.length !== 1 ? 's' : ''}
+        {lista.length} espaço{lista.length !== 1 ? 's' : ''} encontrado{lista.length !== 1 ? 's' : ''}
         {ordenacao === 'distancia' && locStatus === 'denied' ? ' · localização desativada' : ''}
       </Text>
 
@@ -455,6 +465,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 14,
   },
+  iconContainerADC: {
+    backgroundColor: colors.primarySoft,
+  },
+  tipoBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    marginBottom: 3,
+  },
+  tipoBadgeAR: { backgroundColor: colors.accentSoft },
+  tipoBadgeADC: { backgroundColor: colors.primarySoft },
+  tipoBadgeText: { fontSize: 10, fontWeight: '700' },
+  tipoBadgeTextAR: { color: colors.accentText },
+  tipoBadgeTextADC: { color: colors.primary },
   cardInfo: {
     flex: 1,
   },
