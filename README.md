@@ -106,8 +106,9 @@ cp scripts/secrets.example.js scripts/secrets.local.js
 # 2. Preencha APP_ID e MASTER_KEY
 #    (Back4App → App Settings → Security & Keys)
 
-# 3. Rode o seed
-node scripts/seed.js
+# 3. Importe as academias oficiais da Prefeitura
+#    (dados reais do Portal de Dados Abertos do Recife)
+node scripts/import-academias.js
 ```
 
 > 🔒 O `secrets.local.js` está no `.gitignore`. A **Master Key** (acesso total ao
