@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   Image,
   ScrollView,
+  FlatList,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
@@ -40,6 +41,12 @@ export default function DetailsScreen({ route, navigation }) {
   const [avaliacoes, setAvaliacoes] = useState([]);
   const [loadingAv, setLoadingAv] = useState(true);
   const [fotoIdx, setFotoIdx] = useState(0);
+  const flatListRef = useRef(null);
+
+  const onViewableItemsChanged = useCallback(({ viewableItems }) => {
+    if (viewableItems.length > 0) setFotoIdx(viewableItems[0].index ?? 0);
+  }, []);
+  const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 });
 
   const nome = academia.get('nome') || '';
   const bairro = academia.get('bairro') || '';
@@ -68,8 +75,11 @@ export default function DetailsScreen({ route, navigation }) {
     }
   }
 
-  const heroUri = fotos[fotoIdx] || null;
   const localizacao = academia.get('localizacao');
+
+  function scrollParaFoto(i) {
+    flatListRef.current?.scrollToIndex({ index: i, animated: true });
+  }
 
   function abrirRota() {
     if (!localizacao) {
@@ -99,39 +109,46 @@ export default function DetailsScreen({ route, navigation }) {
       contentContainerStyle={styles.content}
       showsVerticalScrollIndicator={false}
     >
-      {/* ── HERO ── */}
+      {/* ── HERO: galeria deslizável ── */}
       <View style={styles.hero}>
-        {heroUri ? (
-          <Image source={{ uri: heroUri }} style={styles.heroImg} resizeMode="cover" />
+        {fotos.length > 0 ? (
+          <FlatList
+            ref={flatListRef}
+            data={fotos}
+            keyExtractor={(_, i) => String(i)}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            bounces={false}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={viewabilityConfig.current}
+            renderItem={({ item }) => (
+              <Image source={{ uri: item }} style={styles.heroImg} resizeMode="cover" />
+            )}
+          />
         ) : (
           <View style={styles.heroPlaceholder}>
             <Ionicons name="fitness" size={64} color={colors.accent} />
           </View>
         )}
 
-        {/* Gradiente escuro na base — sobreposição do nome */}
+        {/* Gradiente + info (sempre visível sobre as fotos) */}
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.72)']}
+          colors={['transparent', 'rgba(0,0,0,0.75)']}
           style={styles.heroGradient}
+          pointerEvents="none"
         >
-          {/* Selo "Academia Recife" */}
           <View style={styles.heroSelo}>
             <Ionicons name="shield-checkmark" size={11} color={colors.accent} />
             <Text style={styles.heroSeloText}>Academia Recife · Prefeitura do Recife</Text>
           </View>
-
-          {/* Nome do polo */}
           <Text style={styles.heroNome}>{nomeExibido}</Text>
-
-          {/* Localização */}
           <View style={styles.heroLocal}>
             <Ionicons name="location" size={13} color="rgba(255,255,255,0.85)" />
             <Text style={styles.heroLocalText} numberOfLines={1}>
               {bairro}{endereco ? ` · ${endereco}` : ''}
             </Text>
           </View>
-
-          {/* Média de avaliação */}
           {mediaAvaliacao > 0 && (
             <View style={styles.heroMedia}>
               <Estrelas valor={Math.round(mediaAvaliacao)} tamanho={13} cor={colors.accent} />
@@ -140,14 +157,22 @@ export default function DetailsScreen({ route, navigation }) {
           )}
         </LinearGradient>
 
-        {/* Seletor de fotos (bolinhas) */}
+        {/* Bolinhas — toque para ir direto à foto, deslize para navegar */}
         {fotos.length > 1 && (
           <View style={styles.fotoDots}>
             {fotos.map((_, i) => (
-              <TouchableOpacity key={i} onPress={() => setFotoIdx(i)}>
+              <TouchableOpacity key={i} onPress={() => scrollParaFoto(i)} hitSlop={8}>
                 <View style={[styles.dot, i === fotoIdx && styles.dotAtivo]} />
               </TouchableOpacity>
             ))}
+          </View>
+        )}
+
+        {/* Contador "1 / 4" no canto superior direito */}
+        {fotos.length > 1 && (
+          <View style={styles.fotoContador}>
+            <Ionicons name="images-outline" size={11} color="#fff" />
+            <Text style={styles.fotoContadorText}>{fotoIdx + 1} / {fotos.length}</Text>
           </View>
         )}
       </View>
@@ -259,8 +284,13 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 40 },
 
   // ── Hero ──
-  hero: { width: SCREEN_W, height: HERO_H, backgroundColor: colors.primarySoft },
-  heroImg: { width: SCREEN_W, height: HERO_H, position: 'absolute' },
+  hero: {
+    width: SCREEN_W,
+    height: HERO_H,
+    backgroundColor: colors.primarySoft,
+    overflow: 'hidden',
+  },
+  heroImg: { width: SCREEN_W, height: HERO_H },
   heroPlaceholder: {
     width: SCREEN_W,
     height: HERO_H,
@@ -277,6 +307,19 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.lg,
     paddingTop: 60,
   },
+  fotoContador: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.50)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  fotoContadorText: { color: '#fff', fontSize: 11, fontWeight: '600' },
   heroSelo: {
     flexDirection: 'row',
     alignItems: 'center',
