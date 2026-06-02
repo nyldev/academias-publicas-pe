@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { listarAcademias } from '../services/academias';
 import useUserLocation from '../hooks/useUserLocation';
 import { calcularDistanciaKm, formatarDistancia } from '../utils/geo';
+import { colors, spacing, radius, shadow } from '../theme';
 
 const ORDENACOES = [
   { id: 'nome', label: 'Nome', icon: 'text-outline' },
@@ -113,7 +114,7 @@ export default function HomeScreen({ navigation }) {
       >
         <View style={styles.cardHeader}>
           <View style={styles.iconContainer}>
-            <Ionicons name="fitness" size={28} color="#2E7D32" />
+            <Ionicons name="fitness" size={28} color="#0064B0" />
           </View>
           <View style={styles.cardInfo}>
             <Text style={styles.cardNome}>{academia.get('nome')}</Text>
@@ -122,7 +123,7 @@ export default function HomeScreen({ navigation }) {
               <Text style={styles.cardBairro}>{academia.get('bairro')}</Text>
               {distanciaTexto && (
                 <View style={styles.distanciaBadge}>
-                  <Ionicons name="navigate" size={11} color="#2E7D32" />
+                  <Ionicons name="navigate" size={11} color="#0064B0" />
                   <Text style={styles.distanciaText}>{distanciaTexto}</Text>
                 </View>
               )}
@@ -150,7 +151,7 @@ export default function HomeScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2E7D32" />
+        <ActivityIndicator size="large" color="#0064B0" />
         <Text style={styles.loadingText}>Carregando academias...</Text>
       </View>
     );
@@ -171,6 +172,9 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.slogan}>
+        <Text style={styles.sloganText}>POR VOCÊ, TRABALHANDO SEM PARAR</Text>
+      </View>
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
         <TextInput
@@ -202,7 +206,7 @@ export default function HomeScreen({ navigation }) {
               <Ionicons
                 name={opt.icon}
                 size={13}
-                color={ativo ? '#fff' : desabilitado ? '#ccc' : '#2E7D32'}
+                color={ativo ? '#fff' : desabilitado ? '#ccc' : '#0064B0'}
               />
               <Text
                 style={[
@@ -229,7 +233,7 @@ export default function HomeScreen({ navigation }) {
         renderItem={renderItem}
         contentContainerStyle={styles.lista}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#2E7D32']} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#0064B0']} />
         }
         ListEmptyComponent={
           <View style={styles.centered}>
@@ -245,7 +249,19 @@ export default function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: colors.bg,
+  },
+  slogan: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 7,
+  },
+  sloganText: {
+    color: '#fff',
+    fontSize: 10.5,
+    fontWeight: '700',
+    letterSpacing: 1,
   },
   centered: {
     flex: 1,
@@ -255,13 +271,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   loadingText: {
-    marginTop: 12,
-    color: '#666',
+    marginTop: 14,
+    color: colors.textSecondary,
     fontSize: 15,
   },
   erroText: {
-    marginTop: 12,
-    color: '#666',
+    marginTop: 14,
+    color: colors.textSecondary,
     fontSize: 15,
     textAlign: 'center',
     lineHeight: 22,
@@ -269,61 +285,59 @@ const styles = StyleSheet.create({
   retryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2E7D32',
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    marginTop: 20,
+    backgroundColor: colors.primary,
+    borderRadius: radius.md,
+    paddingHorizontal: 22,
+    paddingVertical: 13,
+    marginTop: 22,
     gap: 8,
+    ...shadow.card,
   },
   retryText: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    margin: 12,
-    marginBottom: 8,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    backgroundColor: colors.surface,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
+    borderRadius: radius.md,
+    paddingHorizontal: 14,
+    ...shadow.soft,
   },
   searchIcon: {
     marginRight: 8,
   },
   searchInput: {
     flex: 1,
-    height: 44,
+    height: 48,
     fontSize: 15,
-    color: '#333',
+    color: colors.textPrimary,
   },
   ordenacaoRow: {
     flexDirection: 'row',
-    paddingHorizontal: 12,
-    gap: 8,
-    marginBottom: 4,
+    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 20,
-    backgroundColor: '#fff',
+    paddingHorizontal: 13,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: '#D7EAD9',
+    borderColor: colors.primaryBorder,
   },
   chipAtivo: {
-    backgroundColor: '#2E7D32',
-    borderColor: '#2E7D32',
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
   },
   chipDesabilitado: {
     backgroundColor: '#F0F0F0',
@@ -332,7 +346,7 @@ const styles = StyleSheet.create({
   chipText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: colors.primary,
   },
   chipTextAtivo: {
     color: '#fff',
@@ -341,57 +355,54 @@ const styles = StyleSheet.create({
     color: '#bbb',
   },
   contador: {
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     paddingBottom: 6,
-    color: '#888',
+    color: colors.textMuted,
     fontSize: 13,
   },
   lista: {
-    paddingHorizontal: 12,
-    paddingBottom: 20,
+    paddingHorizontal: spacing.md,
+    paddingBottom: 24,
   },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.07,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    marginBottom: spacing.md,
+    ...shadow.card,
   },
   cardHeader: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   iconContainer: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#E8F5E9',
+    width: 52,
+    height: 52,
+    borderRadius: radius.md,
+    backgroundColor: colors.primarySoft,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: 14,
   },
   cardInfo: {
     flex: 1,
   },
   cardNome: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#222',
-    marginBottom: 2,
+    fontSize: 17,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 3,
   },
   localRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
+    flexWrap: 'wrap',
   },
   cardBairro: {
     fontSize: 13,
-    color: '#666',
+    color: colors.textSecondary,
     marginLeft: 2,
   },
   distanciaBadge: {
@@ -399,46 +410,46 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
     marginLeft: 8,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: colors.primarySoft,
     borderRadius: 8,
     paddingHorizontal: 6,
     paddingVertical: 2,
   },
   distanciaText: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#2E7D32',
+    fontWeight: '700',
+    color: colors.primary,
   },
   avaliacaoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFF9E6',
+    backgroundColor: colors.starSoft,
     borderRadius: 8,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
   },
   avaliacaoText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: '#F57F17',
+    fontWeight: '700',
+    color: colors.starText,
     marginLeft: 3,
   },
   equipamentosRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
-    paddingTop: 8,
+    marginTop: 10,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: colors.border,
   },
   equipamentosText: {
     fontSize: 12,
-    color: '#888',
+    color: colors.textMuted,
     marginLeft: 5,
     flex: 1,
   },
   emptyText: {
-    color: '#aaa',
+    color: colors.textMuted,
     fontSize: 15,
     marginTop: 12,
   },

@@ -8,7 +8,7 @@ import { Ionicons } from '@expo/vector-icons';
 export default function MapScreen() {
   return (
     <View style={styles.container}>
-      <Ionicons name="map-outline" size={72} color="#A5D6A7" />
+      <Ionicons name="map-outline" size={72} color="#A6CCE8" />
       <Text style={styles.titulo}>Mapa disponível no celular</Text>
       <Text style={styles.texto}>
         O mapa interativo usa recursos nativos e funciona no app pelo Expo Go
@@ -30,7 +30,7 @@ const styles = StyleSheet.create({
   titulo: {
     fontSize: 19,
     fontWeight: '700',
-    color: '#2E7D32',
+    color: '#0064B0',
     marginTop: 16,
     marginBottom: 8,
     textAlign: 'center',

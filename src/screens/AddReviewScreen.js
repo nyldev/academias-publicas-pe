@@ -55,7 +55,7 @@ export default function AddReviewScreen({ route, navigation }) {
     >
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.academiaInfo}>
-          <Ionicons name="fitness" size={24} color="#2E7D32" />
+          <Ionicons name="fitness" size={24} color="#0064B0" />
           <Text style={styles.academiaNome}>{academia.get('nome')}</Text>
         </View>
 
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   academiaInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E4F0FA',
     borderRadius: 12,
     padding: 14,
     marginBottom: 16,
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   academiaNome: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#2E7D32',
+    color: '#0064B0',
     flex: 1,
   },
   secao: {
@@ -199,13 +199,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#0064B0',
     borderRadius: 14,
     paddingVertical: 16,
     marginTop: 8,
     gap: 8,
     elevation: 3,
   },
-  btnDesabilitado: { backgroundColor: '#A5D6A7' },
+  btnDesabilitado: { backgroundColor: '#A6CCE8' },
   btnSalvarText: { color: '#fff', fontSize: 17, fontWeight: '700' },
 });

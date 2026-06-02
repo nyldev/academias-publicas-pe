@@ -9,23 +9,27 @@ import HomeScreen from './src/screens/HomeScreen';
 import MapScreen from './src/screens/MapScreen';
 import DetailsScreen from './src/screens/DetailsScreen';
 import AddReviewScreen from './src/screens/AddReviewScreen';
+import { colors } from './src/theme';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+// Opções compartilhadas dos cabeçalhos das pilhas (evita duplicação).
+const stackScreenOptions = {
+  headerStyle: { backgroundColor: colors.primary },
+  headerTintColor: '#fff',
+  headerTitleStyle: { fontWeight: '700', fontSize: 18 },
+  headerShadowVisible: false,
+  cardStyle: { backgroundColor: colors.bg },
+};
+
 function HomeStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: '#2E7D32' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '700' },
-      }}
-    >
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="Lista"
         component={HomeScreen}
-        options={{ title: 'Academias ao Ar Livre' }}
+        options={{ title: 'Recife +' }}
       />
       <Stack.Screen name="Detalhes" component={DetailsScreen} />
       <Stack.Screen
@@ -39,17 +43,11 @@ function HomeStack() {
 
 function MapStack() {
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle: { backgroundColor: '#2E7D32' },
-        headerTintColor: '#fff',
-        headerTitleStyle: { fontWeight: '700' },
-      }}
-    >
+    <Stack.Navigator screenOptions={stackScreenOptions}>
       <Stack.Screen
         name="Mapa"
         component={MapScreen}
-        options={{ title: 'Mapa — Academias ao Ar Livre' }}
+        options={{ title: 'Recife + · Mapa' }}
       />
       <Stack.Screen name="Detalhes" component={DetailsScreen} />
       <Stack.Screen
@@ -68,13 +66,17 @@ export default function App() {
       <Tab.Navigator
         screenOptions={({ route }) => ({
           headerShown: false,
-          tabBarActiveTintColor: '#2E7D32',
-          tabBarInactiveTintColor: '#aaa',
+          tabBarActiveTintColor: colors.primary,
+          tabBarInactiveTintColor: colors.textMuted,
+          tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
           tabBarStyle: {
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+            paddingTop: 6,
             elevation: 8,
             shadowColor: '#000',
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
+            shadowOpacity: 0.06,
+            shadowRadius: 8,
             shadowOffset: { width: 0, height: -2 },
           },
           tabBarIcon: ({ focused, color, size }) => {

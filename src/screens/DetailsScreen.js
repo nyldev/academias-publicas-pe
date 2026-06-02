@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
+  Image,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { buscarAvaliacoes } from '../services/academias';
+
+const SCREEN_W = Dimensions.get('window').width;
 
 function Estrelas({ valor, tamanho = 20 }) {
   return (
@@ -36,6 +40,7 @@ export default function DetailsScreen({ route, navigation }) {
   const descricao = academia.get('descricao') || '';
   const equipamentos = academia.get('equipamentos') || [];
   const mediaAvaliacao = academia.get('mediaAvaliacao') || 0;
+  const fotos = academia.get('fotos') || [];
 
   useEffect(() => {
     navigation.setOptions({ title: nome });
@@ -55,14 +60,31 @@ export default function DetailsScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Galeria de fotos do local */}
+      {fotos.length > 0 && (
+        <View style={styles.galeria}>
+          <ScrollView horizontal pagingEnabled showsHorizontalScrollIndicator={false}>
+            {fotos.map((url, i) => (
+              <Image key={i} source={{ uri: url }} style={styles.foto} resizeMode="cover" />
+            ))}
+          </ScrollView>
+          {fotos.length > 1 && (
+            <View style={styles.galeriaSelo}>
+              <Ionicons name="images" size={12} color="#fff" />
+              <Text style={styles.galeriaSeloText}>{fotos.length} fotos</Text>
+            </View>
+          )}
+        </View>
+      )}
+
       {/* Cabeçalho */}
       <View style={styles.header}>
         <View style={styles.headerIcon}>
-          <Ionicons name="fitness" size={40} color="#2E7D32" />
+          <Ionicons name="fitness" size={40} color="#0064B0" />
         </View>
         <Text style={styles.nome}>{nome}</Text>
         <View style={styles.localRow}>
-          <Ionicons name="location" size={16} color="#2E7D32" />
+          <Ionicons name="location" size={16} color="#0064B0" />
           <Text style={styles.localText}>
             {bairro}{endereco ? ` — ${endereco}` : ''}
           </Text>
@@ -90,7 +112,7 @@ export default function DetailsScreen({ route, navigation }) {
           <View style={styles.equipamentosGrid}>
             {equipamentos.map((eq, idx) => (
               <View key={idx} style={styles.equipamentoBadge}>
-                <Ionicons name="barbell-outline" size={14} color="#2E7D32" />
+                <Ionicons name="barbell-outline" size={14} color="#0064B0" />
                 <Text style={styles.equipamentoText}>{eq}</Text>
               </View>
             ))}
@@ -114,7 +136,7 @@ export default function DetailsScreen({ route, navigation }) {
           Avaliações {avaliacoes.length > 0 ? `(${avaliacoes.length})` : ''}
         </Text>
         {loading ? (
-          <ActivityIndicator color="#2E7D32" style={{ marginTop: 12 }} />
+          <ActivityIndicator color="#0064B0" style={{ marginTop: 12 }} />
         ) : avaliacoes.length === 0 ? (
           <Text style={styles.semAvaliacao}>Seja o primeiro a avaliar!</Text>
         ) : (
@@ -143,6 +165,21 @@ export default function DetailsScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F5F5F5' },
   content: { paddingBottom: 32 },
+  galeria: { position: 'relative', marginBottom: 12 },
+  foto: { width: SCREEN_W, height: 230, backgroundColor: '#E4F0FA' },
+  galeriaSelo: {
+    position: 'absolute',
+    bottom: 10,
+    right: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  galeriaSeloText: { color: '#fff', fontSize: 11, fontWeight: '600' },
   header: {
     backgroundColor: '#fff',
     alignItems: 'center',
@@ -160,7 +197,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: 20,
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E4F0FA',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 12,
@@ -217,18 +254,18 @@ const styles = StyleSheet.create({
   equipamentoBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#E4F0FA',
     borderRadius: 20,
     paddingHorizontal: 10,
     paddingVertical: 5,
     gap: 5,
   },
-  equipamentoText: { color: '#2E7D32', fontSize: 13, fontWeight: '500' },
+  equipamentoText: { color: '#0064B0', fontSize: 13, fontWeight: '500' },
   btnAvaliar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#0064B0',
     marginHorizontal: 12,
     marginBottom: 12,
     borderRadius: 12,

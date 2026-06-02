@@ -60,7 +60,7 @@ export default function MapScreen({ navigation }) {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#2E7D32" />
+        <ActivityIndicator size="large" color="#0064B0" />
         <Text style={styles.loadingText}>Carregando mapa...</Text>
       </View>
     );
@@ -102,7 +102,7 @@ export default function MapScreen({ navigation }) {
             <Marker
               key={academia.id}
               coordinate={{ latitude: loc.latitude, longitude: loc.longitude }}
-              pinColor="#2E7D32"
+              pinColor="#0064B0"
             >
               <Callout onPress={() => navigation.navigate('Detalhes', { academia })}>
                 <View style={styles.callout}>
@@ -117,7 +117,7 @@ export default function MapScreen({ navigation }) {
       </MapView>
 
       <TouchableOpacity style={styles.locationBtn} onPress={centralizarUsuario}>
-        <Ionicons name="locate" size={22} color="#2E7D32" />
+        <Ionicons name="locate" size={22} color="#0064B0" />
       </TouchableOpacity>
 
       <View style={styles.contador}>
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   retryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#0064B0',
     borderRadius: 12,
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   calloutVer: {
-    color: '#2E7D32',
+    color: '#0064B0',
     fontSize: 11,
     fontWeight: '600',
   },
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     alignSelf: 'center',
-    backgroundColor: '#2E7D32',
+    backgroundColor: '#0064B0',
     borderRadius: 20,
     paddingHorizontal: 14,
     paddingVertical: 6,
