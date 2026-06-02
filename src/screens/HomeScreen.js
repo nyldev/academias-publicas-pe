@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   View,
   Text,
+  Image,
   FlatList,
   TouchableOpacity,
   StyleSheet,
@@ -114,7 +115,7 @@ export default function HomeScreen({ navigation }) {
       >
         <View style={styles.cardHeader}>
           <View style={styles.iconContainer}>
-            <Ionicons name="fitness" size={28} color="#0064B0" />
+            <Ionicons name="fitness" size={28} color="#FFC20E" />
           </View>
           <View style={styles.cardInfo}>
             <Text style={styles.cardNome}>{academia.get('nome')}</Text>
@@ -172,8 +173,19 @@ export default function HomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.slogan}>
-        <Text style={styles.sloganText}>POR VOCÊ, TRABALHANDO SEM PARAR</Text>
+      {/* Faixa de marca: logo + slogan */}
+      <View style={styles.brandBar}>
+        <View style={styles.brandLeft}>
+          {/* Logo da Prefeitura — coloque assets/recife-logo.png e descomente:
+          <Image source={require('../../assets/recife-logo.png')} style={styles.logo} resizeMode="contain" /> */}
+          <View style={styles.logoPlaceholder}>
+            <Text style={styles.logoPlaceholderText}>🏛️</Text>
+          </View>
+          <View>
+            <Text style={styles.brandNome}>Recife <Text style={styles.brandPlus}>+</Text></Text>
+            <Text style={styles.brandSlogan}>POR VOCÊ, TRABALHANDO SEM PARAR</Text>
+          </View>
+        </View>
       </View>
       <View style={styles.searchContainer}>
         <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
@@ -206,7 +218,7 @@ export default function HomeScreen({ navigation }) {
               <Ionicons
                 name={opt.icon}
                 size={13}
-                color={ativo ? '#fff' : desabilitado ? '#ccc' : '#0064B0'}
+                color={ativo ? '#1A1A1A' : desabilitado ? '#ccc' : colors.primary}
               />
               <Text
                 style={[
@@ -251,17 +263,52 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bg,
   },
-  slogan: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  brandBar: {
     backgroundColor: colors.primary,
-    paddingVertical: 7,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  sloganText: {
+  brandLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logoPlaceholder: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+    backgroundColor: colors.accent,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  logoPlaceholderText: {
+    fontSize: 20,
+  },
+  logo: {
+    width: 38,
+    height: 38,
+    borderRadius: 8,
+  },
+  brandNome: {
     color: '#fff',
-    fontSize: 10.5,
+    fontSize: 18,
+    fontWeight: '800',
+    lineHeight: 20,
+  },
+  brandPlus: {
+    color: colors.accent,
+    fontSize: 20,
+    fontWeight: '900',
+  },
+  brandSlogan: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 9,
     fontWeight: '700',
-    letterSpacing: 1,
+    letterSpacing: 0.8,
+    marginTop: 1,
   },
   centered: {
     flex: 1,
@@ -336,8 +383,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primaryBorder,
   },
   chipAtivo: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: colors.accent,
+    borderColor: colors.accent,
   },
   chipDesabilitado: {
     backgroundColor: '#F0F0F0',
@@ -349,7 +396,7 @@ const styles = StyleSheet.create({
     color: colors.primary,
   },
   chipTextAtivo: {
-    color: '#fff',
+    color: '#1A1A1A',
   },
   chipTextDesabilitado: {
     color: '#bbb',
@@ -380,7 +427,7 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: radius.md,
-    backgroundColor: colors.primarySoft,
+    backgroundColor: colors.accentSoft,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
