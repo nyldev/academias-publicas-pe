@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -10,6 +10,7 @@ import MapScreen from './src/screens/MapScreen';
 import DetailsScreen from './src/screens/DetailsScreen';
 import AddReviewScreen from './src/screens/AddReviewScreen';
 import { colors } from './src/theme';
+import EntradaScreen from './src/screens/EntradaScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -60,6 +61,12 @@ function MapStack() {
 }
 
 export default function App() {
+  const [entradaFim, setEntradaFim] = useState(false);
+
+  if (!entradaFim) {
+    return <EntradaScreen onFim={() => setEntradaFim(true)} />;
+  }
+
   return (
     <NavigationContainer>
       <StatusBar style="light" />
