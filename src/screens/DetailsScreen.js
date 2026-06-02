@@ -65,7 +65,8 @@ export default function DetailsScreen({ route, navigation }) {
   const nomeExibido = nome.replace(/^Academia Recife\s*[-–]\s*/i, '');
 
   useEffect(() => {
-    navigation.setOptions({ title: '' });
+    // Esconde o header padrão — usamos botão flutuante sobre o hero
+    navigation.setOptions({ headerShown: false });
     carregarAvaliacoes();
     getFavoritos().then((favs) => setFavorito(favs.includes(academia.id)));
   }, []);
@@ -182,6 +183,15 @@ export default function DetailsScreen({ route, navigation }) {
             </View>
           )}
         </LinearGradient>
+
+        {/* Botão voltar flutuante — sempre visível sobre a foto */}
+        <TouchableOpacity
+          style={styles.btnVoltar}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="chevron-back" size={22} color="#fff" />
+        </TouchableOpacity>
 
         {/* Bolinhas — toque para ir direto à foto, deslize para navegar */}
         {fotos.length > 1 && (
@@ -356,6 +366,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
     paddingTop: 60,
+  },
+  btnVoltar: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   fotoContador: {
     position: 'absolute',
