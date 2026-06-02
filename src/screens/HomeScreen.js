@@ -176,11 +176,7 @@ export default function HomeScreen({ navigation }) {
       {/* Faixa de marca: logo + slogan */}
       <View style={styles.brandBar}>
         <View style={styles.brandLeft}>
-          {/* Logo da Prefeitura — coloque assets/recife-logo.png e descomente:
-          <Image source={require('../../assets/recife-logo.png')} style={styles.logo} resizeMode="contain" /> */}
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoPlaceholderText}>🏛️</Text>
-          </View>
+          <Image source={require('../../assets/recife-logo.png')} style={styles.logo} resizeMode="contain" />
           <View>
             <Text style={styles.brandNome}>Recife <Text style={styles.brandPlus}>+</Text></Text>
             <Text style={styles.brandSlogan}>POR VOCÊ, TRABALHANDO SEM PARAR</Text>
