@@ -8,6 +8,9 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Dimensions,
+  Linking,
+  Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -66,6 +69,29 @@ export default function DetailsScreen({ route, navigation }) {
   }
 
   const heroUri = fotos[fotoIdx] || null;
+  const localizacao = academia.get('localizacao');
+
+  function abrirRota() {
+    if (!localizacao) {
+      Alert.alert('Localização indisponível', 'Esta academia não possui coordenadas cadastradas.');
+      return;
+    }
+    const { latitude, longitude } = localizacao;
+    const label = encodeURIComponent(nomeExibido);
+
+    // iOS → Apple Maps (abre o app nativo de mapas com rota)
+    // Android → Google Maps
+    const url = Platform.OS === 'ios'
+      ? `maps://app?daddr=${latitude},${longitude}&dirflg=d`
+      : `google.navigation:q=${latitude},${longitude}`;
+
+    // Fallback universal (Google Maps no navegador) caso o app não esteja instalado
+    const urlFallback = `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}&destination_place_id=${label}&travelmode=walking`;
+
+    Linking.canOpenURL(url)
+      .then((supported) => Linking.openURL(supported ? url : urlFallback))
+      .catch(() => Linking.openURL(urlFallback));
+  }
 
   return (
     <ScrollView
@@ -126,8 +152,19 @@ export default function DetailsScreen({ route, navigation }) {
         )}
       </View>
 
-      {/* ── BOTÃO AVALIAR (em destaque logo abaixo do hero) ── */}
+      {/* ── AÇÕES: Como chegar + Avaliar ── */}
       <View style={styles.acoes}>
+        {/* Como chegar — botão primário (azul Recife) */}
+        <TouchableOpacity
+          style={styles.btnRota}
+          onPress={abrirRota}
+          activeOpacity={0.85}
+        >
+          <Ionicons name="navigate" size={16} color="#fff" />
+          <Text style={styles.btnRotaText}>Como chegar</Text>
+        </TouchableOpacity>
+
+        {/* Avaliar — botão secundário (amarelo Recife) */}
         <TouchableOpacity
           style={styles.btnAvaliar}
           onPress={() =>
@@ -139,7 +176,7 @@ export default function DetailsScreen({ route, navigation }) {
           activeOpacity={0.85}
         >
           <Ionicons name="star" size={16} color="#1A1A1A" />
-          <Text style={styles.btnAvaliarText}>Avaliar academia</Text>
+          <Text style={styles.btnAvaliarText}>Avaliar</Text>
         </TouchableOpacity>
       </View>
 
@@ -307,6 +344,22 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  btnRota: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    borderRadius: radius.pill,
+    paddingVertical: 13,
+    gap: 7,
+    ...shadow.card,
+  },
+  btnRotaText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '700',
   },
   btnAvaliar: {
     flex: 1,
